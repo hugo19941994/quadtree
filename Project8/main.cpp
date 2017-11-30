@@ -11,6 +11,9 @@
 #include <ctime>
 #include <random>
 
+int NUM_CIRC = 100000;
+int RAD = 50;
+
 void drawRectangle(const std::unique_ptr<QuadTree>& q) {
 	al_draw_rectangle(q->tl.x, q->tl.y, q->tl.x + q->height, q->tl.y + q->width,
 		al_map_rgb(255, 255, 255), 1.0);
@@ -20,6 +23,27 @@ void drawRectangle(const std::unique_ptr<QuadTree>& q) {
 			drawRectangle(q->nodes[i]);
 		}
 	}
+}
+
+std::string collisionObjects(const Point p, std::vector<Circle> c) {
+	// Print candidates
+	for (auto &i : c) {
+		std::cout << i.id << std::endl;
+	}
+
+	std::cout << "Must calculate " << c.size() << " collisions out of " << NUM_CIRC << std::endl;
+
+	Circle candidate = Circle(Point(0, 0), 0, 999, "");
+	for (auto &i : c) {
+		if (sqrt(pow(p.x - i.center.x, 2) + pow(p.y - i.center.y, 2)) < i.radius) {
+			// inside
+			if (i.z < candidate.z) {
+				candidate = i;
+			}
+		}
+	}
+
+	return candidate.id;
 }
 
 int main() {
@@ -37,11 +61,11 @@ int main() {
 	std::uniform_int_distribution<> col(0, 255);
 
 	QuadTree q = QuadTree(0, Point(0, 0), 1000, 1000);
-	for (int i = 0; i < 300; ++i) {
-		Circle c = Circle(Point(dis(gen), dis(gen)), 50, i, std::to_string(i));
+	for (int i = 0; i < NUM_CIRC; ++i) {
+		Circle c = Circle(Point(dis(gen), dis(gen)), RAD, i, std::to_string(i));
 		q.insert(c);
 
-		al_draw_circle((float)c.center.x, (float)c.center.y, 50.0,
+		al_draw_circle((float)c.center.x, (float)c.center.y, float(RAD),
 			al_map_rgb(col(gen), col(gen), col(gen)), 1.0);
 		al_draw_text(font, al_map_rgb(255, 255, 255), c.center.x, c.center.y, ALLEGRO_ALIGN_CENTRE, c.id.c_str());
 	}
